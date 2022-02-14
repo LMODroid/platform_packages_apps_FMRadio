@@ -15,6 +15,10 @@
      limitations under the License.
 -->
 <resources>
+    <!-- Icon -->
+    <color name="ic_fill_color">#4c1a1a</color>
+    <color name="ic_launcher_background">#607D8B</color>
+
     <!-- Color of the selected tab underline -->
     <color name="white_color">#FFFFFF</color>
     <color name="black_color">#000000</color>
