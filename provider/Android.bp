@@ -20,17 +20,9 @@ android_app {
     sdk_version: "current",
     srcs: ["src/**/*.java"],
 
-    required: ["default-permissions-com.android.fmradio.recordings.xml"],
     static_libs: ["androidx.core_core"],
 
     optimize: {
         enabled: false,
     },
-}
-
-prebuilt_etc {
-    name: "default-permissions-com.android.fmradio.recordings.xml",
-
-    src: "default-permissions-com.android.fmradio.recordings.xml",
-    relative_install_path: "default-permissions",
 }
