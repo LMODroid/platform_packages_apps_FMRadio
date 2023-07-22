@@ -77,6 +77,8 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
 
     private static final int PERMISSION_REQUEST_POWER_ON = 100;
 
+    private static final int PERMISSION_REQUEST_NOTIFICATION_ON = 101;
+
     // Extra for result of request REQUEST_CODE_RECORDING
     public static final String EXTRA_RESULT_STRING = "result_string";
 
@@ -959,6 +961,19 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
             return;
         }
         mService.setRecordingPermission(true);
+
+        int notificationPermission = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS);
+        mPermissionStrings.clear();
+        mRequest = false;
+        if (notificationPermission != PackageManager.PERMISSION_GRANTED) {
+            mPermissionStrings.add(Manifest.permission.POST_NOTIFICATIONS);
+            mRequest = true;
+        }
+        if (mRequest == true) {
+            String[] mPermissionList = new String[mPermissionStrings.size()];
+            mPermissionList = mPermissionStrings.toArray(mPermissionList);
+            requestPermissions(mPermissionList, PERMISSION_REQUEST_NOTIFICATION_ON);
+        }
         mService.powerUpAsync(FmUtils.computeFrequency(mCurrentStation));
     }
 
@@ -1286,6 +1301,15 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
                     powerUpFm();
                 }
             } else if (!mShowPermission) {
+                showToast(getString(R.string.missing_required_permission));
+            }
+        } else if (requestCode == PERMISSION_REQUEST_NOTIFICATION_ON ) {
+            granted = (grantResults[0] == PackageManager.PERMISSION_GRANTED);
+            if (!granted) {
+                mShowPermission = shouldShowRequestPermissionRationale(permissions[0]);
+            }
+            Log.i(TAG, "<onRequestPermissionsResult> Notification on fm granted" + granted);
+            if (!mShowPermission) {
                 showToast(getString(R.string.missing_required_permission));
             }
         }

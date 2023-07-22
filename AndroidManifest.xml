@@ -24,7 +24,7 @@
     <!-- FM uses AudioPatch which is new in sdk 21 -->
     <uses-sdk
         android:minSdkVersion="26"
-        android:targetSdkVersion="31"
+        android:targetSdkVersion="33"
         android:usesCleartextTraffic="false" />
 
     <uses-permission android:name="android.permission.ACCESS_BROADCAST_RADIO" />
@@ -42,6 +42,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="com.android.fmradio.recordings.permission.PLAY_RECORDING" />
 
     <application
