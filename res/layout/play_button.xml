@@ -16,6 +16,7 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/play_button_container"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -27,15 +28,16 @@
         android:layout_width="@dimen/play_button_height"
         android:layout_height="@dimen/play_button_height"
         android:gravity="center"
-        android:background="@drawable/fb_red" >
+        android:background="@android:color/transparent" >
 
-        <ImageButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/play_button"
-            android:layout_width="56dip"
-            android:layout_height="56dip"
-            android:background="@drawable/circle_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:contentDescription="@string/fm_turn_on"
-            android:src="@drawable/btn_fm_start_selector" />
+            android:src="@drawable/play_arrow_24px"
+            app:elevation="3dp"
+            />
     </LinearLayout>
 
 </LinearLayout>

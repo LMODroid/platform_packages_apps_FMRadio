@@ -15,15 +15,15 @@
      limitations under the License.
 -->
 
-<com.android.fmradio.views.FmScroller
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.android.fmradio.views.FmScroller xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:id="@+id/multiscroller"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:descendantFocusability="afterDescendants" >
+    android:descendantFocusability="afterDescendants">
 
     <LinearLayout
         android:id="@+id/main_view"
@@ -34,8 +34,7 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/theme_windowBackground"
-            android:elevation="@dimen/fm_middle_shadow"
+            android:background="?colorSurface"
             android:id="@+id/main_header_parent">
             <include layout="@layout/main_header" />
         </FrameLayout>
@@ -46,7 +45,8 @@
 
     <include layout="@layout/play_button" />
 
-    <include layout="@layout/no_headset" />
+    <include layout="@layout/no_headset"
+        tools:visibility="gone" />
 
 </com.android.fmradio.views.FmScroller>
 

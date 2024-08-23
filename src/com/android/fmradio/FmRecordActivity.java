@@ -87,6 +87,9 @@ public class FmRecordActivity extends Activity implements
         Log.d(TAG, "onCreate");
         mContext = getApplicationContext();
         mFragmentManager = getFragmentManager();
+
+        setTheme(R.style.AppTheme);
+
         setContentView(R.layout.fm_record_activity);
 
         mMinutes = (TextView) findViewById(R.id.minutes);

@@ -56,13 +56,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
-
 import com.android.fmradio.FmStation.Station;
 import com.android.fmradio.dialogs.FmFavoriteEditDialog;
 import com.android.fmradio.views.FmScroller;
 import com.android.fmradio.views.FmSnackBar;
 import com.android.fmradio.views.FmScroller.EventListener;
-
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 /**
  * This class interact with user, provide FM basic function.
  */
@@ -107,9 +107,11 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
 
     private ImageButton mButtonAddToFavorite = null;
 
-    private ImageButton mButtonPlay = null;
+    private FloatingActionButton mButtonPlay = null;
 
     private ImageView mNoHeadsetImgView = null;
+
+    private TextView mNoHeadsetTitleTextView = null;
 
     private View mNoHeadsetImgViewWrap = null;
 
@@ -413,6 +415,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
             Animation anim = AnimationUtils.loadAnimation(mContext,
                     R.anim.main_alpha_in);
             mMainLayout.startAnimation(anim);
+            getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurfaceContainer));
             anim = AnimationUtils.loadAnimation(mContext, R.anim.floatbtn_alpha_in);
 
             mBtnPlayContainer.startAnimation(anim);
@@ -440,6 +443,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
             Animation anim = AnimationUtils.loadAnimation(mContext,
                     R.anim.noeaphone_alpha_in);
             mNoHeadsetLayout.startAnimation(anim);
+            getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurface));
         }
 
         @Override
@@ -460,7 +464,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         // Judge the current output and switch between the devices.
         if (FmStation.isFavoriteStation(mContext, mCurrentStation)) {
             FmStation.removeFromFavorite(mContext, mCurrentStation);
-            mButtonAddToFavorite.setImageResource(R.drawable.btn_fm_favorite_off_selector);
+            mButtonAddToFavorite.setImageResource(R.drawable.favorite_24px_outline);
             // Notify scroller
             mScroller.onRemoveFavorite();
             mTextStationName.setText(FmStation.getStationName(mContext, mCurrentStation));
@@ -474,7 +478,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
                 values.put(Station.IS_FAVORITE, true);
                 FmStation.insertStationToDb(mContext, values);
             }
-            mButtonAddToFavorite.setImageResource(R.drawable.btn_fm_favorite_on_selector);
+            mButtonAddToFavorite.setImageResource(R.drawable.favorite_24px_filled);
             // Notify scroller
             mScroller.onAddFavorite();
         }
@@ -529,7 +533,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
                     if (mCurrentStation == frequency) {
                         mTextStationName.setText(FmStation.getStationName(mContext, frequency));
                     }
-                    mButtonAddToFavorite.setImageResource(R.drawable.btn_fm_favorite_off_selector);
+                    mButtonAddToFavorite.setImageResource(R.drawable.favorite_24px_outline);
                     // Notify scroller
                     mScroller.onRemoveFavorite();
                 }
@@ -603,9 +607,9 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mTextStationValue.setText(FmUtils.formatStation(station));
         // Show or hide the favorite icon
         if (FmStation.isFavoriteStation(mContext, station)) {
-            mButtonAddToFavorite.setImageResource(R.drawable.btn_fm_favorite_on_selector);
+            mButtonAddToFavorite.setImageResource(R.drawable.favorite_24px_filled);
         } else {
-            mButtonAddToFavorite.setImageResource(R.drawable.btn_fm_favorite_off_selector);
+            mButtonAddToFavorite.setImageResource(R.drawable.favorite_24px_outline);
         }
 
         String stationName = "";
@@ -878,6 +882,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (RESULT_OK == resultCode) {
             if (REQUEST_CODE_RECORDING == requestCode) {
                 final Uri playUri = data.getData();
@@ -930,9 +935,9 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
 
         // TODO it's on UI thread, change to sub thread
         if (FmStation.isFavoriteStation(mContext, mCurrentStation)) {
-            mButtonAddToFavorite.setImageResource(R.drawable.btn_fm_favorite_on_selector);
+            mButtonAddToFavorite.setImageResource(R.drawable.favorite_24px_filled);
         } else {
-            mButtonAddToFavorite.setImageResource(R.drawable.btn_fm_favorite_off_selector);
+            mButtonAddToFavorite.setImageResource(R.drawable.favorite_24px_outline);
         }
         mTextStationName.setText(FmStation.getStationName(mContext, mCurrentStation));
     }
@@ -1051,10 +1056,9 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         boolean isPowerUp = (mService.getPowerStatus() == FmService.POWER_UP);
         mButtonPlay.setEnabled(enabled);
         mButtonPlay.setImageResource((isPowerUp
-                ? R.drawable.btn_fm_stop_selector
-                : R.drawable.btn_fm_start_selector));
+                ? R.drawable.pause_24px
+                : R.drawable.play_arrow_24px));
         Resources r = getResources();
-        mBtnPlayInnerContainer.setBackground(r.getDrawable(R.drawable.fb_red));
         mScroller.refreshPlayIndicator(mCurrentStation, isPowerUp);
     }
 
@@ -1175,9 +1179,10 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mNoEarphoneTextLayout = (LinearLayout) findViewById(R.id.no_bottom);
         mBtnPlayContainer = (LinearLayout) findViewById(R.id.play_button_container);
         mBtnPlayInnerContainer = (LinearLayout) findViewById(R.id.play_button_inner_container);
-        mButtonPlay = (ImageButton) findViewById(R.id.play_button);
+        mButtonPlay = findViewById(R.id.play_button);
         mNoEarPhoneTxt = (TextView) findViewById(R.id.no_eaphone_text);
         mNoHeadsetImgView = (ImageView) findViewById(R.id.no_headset_img);
+        mNoHeadsetTitleTextView = findViewById(R.id.no_headset_title);
         mNoHeadsetImgViewWrap = findViewById(R.id.no_middle);
         mMiddleShadowSize = getResources().getDimension(R.dimen.fm_middle_shadow);
         // main ui layout params
@@ -1211,6 +1216,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
                 R.anim.noeaphone_alpha_out);
         mNoEarPhoneTxt.startAnimation(animation);
         mNoHeadsetImgView.startAnimation(animation);
+        mNoHeadsetTitleTextView.startAnimation(animation);
 
         animation = AnimationUtils.loadAnimation(mContext,
                 R.anim.noeaphone_translate_out);
@@ -1224,6 +1230,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
     private void cancelMainAnimation() {
         mNoEarPhoneTxt.clearAnimation();
         mNoHeadsetImgView.clearAnimation();
+        mNoHeadsetTitleTextView.clearAnimation();
         mNoEarphoneTextLayout.clearAnimation();
     }
 
@@ -1260,9 +1267,11 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mNoEarphoneTextLayout.setVisibility(View.GONE);
         mNoHeadsetImgView.setVisibility(View.GONE);
         mNoHeadsetImgViewWrap.setVisibility(View.GONE);
+        mNoHeadsetTitleTextView.setVisibility(View.GONE);
         mNoHeadsetLayout.setVisibility(View.GONE);
         // change to main layout
         mMainLayout.setVisibility(View.VISIBLE);
+        getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurfaceContainer));
         mBtnPlayContainer.setVisibility(View.VISIBLE);
     }
 
@@ -1274,14 +1283,17 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mBtnPlayContainer.setVisibility(View.GONE);
         mNoEarphoneTextLayout.setVisibility(View.VISIBLE);
         mNoHeadsetImgView.setVisibility(View.VISIBLE);
+        mNoHeadsetTitleTextView.setVisibility(View.VISIBLE);
         mNoHeadsetImgViewWrap.setVisibility(View.VISIBLE);
         mNoHeadsetLayout.setVisibility(View.VISIBLE);
+        getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurface));
         mNoHeadsetImgViewWrap.setElevation(mMiddleShadowSize);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
             int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         boolean granted = true;
         boolean mShowPermission = true;
         if (permissions.length <= 0 || grantResults.length <= 0) {

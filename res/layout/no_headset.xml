@@ -16,6 +16,7 @@
 -->
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/no_headset"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
@@ -23,35 +24,47 @@
     <LinearLayout
         android:id="@+id/no_middle"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/fm_noheadset_img_part_height"
-        android:gravity="bottom"
-        android:background="@color/theme_windowBackground"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
         android:orientation="vertical" >
         <ImageView
             android:id="@+id/no_headset_img"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:src="@drawable/headset_off_48px"
+            android:layout_marginTop="48dp"
+            android:layout_marginStart="24dp"
+            />
+        <TextView
+            android:id="@+id/no_headset_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_headest_null" />
+            android:text="No headphones"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:textSize="34sp"
+            android:textColor="?colorOnSurface"
+            />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/no_bottom"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
         android:layout_below="@+id/no_middle"
-        android:background="@color/white_color">
+        android:background="?colorSurface">
         <TextView
             android:id="@+id/no_eaphone_text"
-            android:layout_width="@dimen/fm_noheadset_text_width"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:text="@string/fm_no_headset_text"
-            android:textSize="@dimen/fm_noheadset_text_size"
-            android:textColor="@color/black_color"
+            android:textSize="17sp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginTop="24dp"
+            android:textColor="?colorOnSurface"
             android:fontFamily="sans-serif"
             android:alpha="0.87" />
-
     </LinearLayout>
 
 </RelativeLayout>

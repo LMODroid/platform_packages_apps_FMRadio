@@ -1458,7 +1458,7 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_HEADSET_PLUG);
         mBroadcastReceiver = new FmServiceBroadcastReceiver();
-        registerReceiver(mBroadcastReceiver, filter);
+        registerReceiver(mBroadcastReceiver, filter, Context.RECEIVER_EXPORTED);
     }
 
     private void unregisterFmBroadcastReceiver() {
