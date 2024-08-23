@@ -18,9 +18,9 @@
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="@color/floating_action_button_touch_tint" >
     <item android:id="@android:id/mask">
-        <shape android:shape="oval">
+        <shape android:shape="rectangle">
             <solid android:color="@color/floating_action_button_touch_tint" />
-            <corners android:radius="90dp"/>
+            <corners android:radius="24dp"/>
         </shape>
     </item>
 <!--     <item android:drawable="@color/theme_primary_color" /> -->

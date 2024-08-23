@@ -63,6 +63,7 @@ import com.android.fmradio.FmStation;
 import com.android.fmradio.FmUtils;
 import com.android.fmradio.R;
 import com.android.fmradio.FmStation.Station;
+import com.google.android.material.color.MaterialColors;
 
 /**
  * Modified from Contact MultiShrinkScroll Handle the touch event and change
@@ -849,13 +850,13 @@ public class FmScroller extends FrameLayout {
                     } else {
                         viewHolder.mPlayIndicator.stopAnimation();
                     }
-                    viewHolder.mStationFreq.setTextColor(Color.parseColor("#607D8B"));
+                    viewHolder.mStationFreq.setTextColor(MaterialColors.getColor(viewHolder.mStationFreq, com.google.android.material.R.attr.colorOnSecondaryContainer));
                     viewHolder.mStationFreq.setAlpha(1f);
                     viewHolder.mStationName.setMaxLines(1);
                 } else {
                     viewHolder.mPlayIndicator.setVisibility(View.GONE);
                     viewHolder.mPlayIndicator.stopAnimation();
-                    viewHolder.mStationFreq.setTextColor(Color.parseColor("#000000"));
+                    viewHolder.mStationFreq.setTextColor(MaterialColors.getColor(viewHolder.mStationFreq, com.google.android.material.R.attr.colorPrimaryVariant));
                     viewHolder.mStationFreq.setAlpha(0.87f);
                     viewHolder.mStationName.setMaxLines(2);
                 }

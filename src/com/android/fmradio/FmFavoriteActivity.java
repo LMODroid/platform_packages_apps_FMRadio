@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -56,6 +57,8 @@ import android.widget.Toast;
 
 import com.android.fmradio.FmService.OnExitListener;
 import com.android.fmradio.FmStation.Station;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.color.MaterialColors;
 
 /**
  * This class interact with user, provider edit station information, such as add
@@ -101,15 +104,47 @@ public class FmFavoriteActivity extends Activity {
         super.onCreate(savedInstanceState);
         // Bind the activity to FM audio stream.
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        setTheme(R.style.AppTheme);
         setContentView(R.layout.favorite);
         // display action bar and navigation button
-        ActionBar actionBar = getActionBar();
+        MaterialToolbar actionBar = findViewById(R.id.toolBar);
         actionBar.setTitle(getString(R.string.station_title));
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mContext = getApplicationContext();
+        actionBar.setNavigationOnClickListener(v -> {
+            finish();
+        });
+        actionBar.setOnMenuItemClickListener(v -> {
+            if (null != mService) {
+                refreshMenuItem(false);
 
+                mMyAdapter.swipResult(null);
+                mLvFavorites.setEmptyView(mSearchTips);
+                mSearchProgress.setIndeterminate(true);
+
+                // If current location and last location exceed defined distance, delete the RDS database
+                if (isGpsOpen()) {
+                    mCurLocation = mLocationManager
+                            .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (mCurLocation != null) {
+                        double[] lastLocations = FmUtils.getLastSearchedLocation(mContext);
+                        float distance[] = new float[2];
+                        Location.distanceBetween(lastLocations[0], lastLocations[1],
+                                mCurLocation.getLatitude(), mCurLocation.getLongitude(),
+                                distance);
+                        float searchedDistance = distance[0];
+                        boolean exceed =
+                                searchedDistance > FmUtils.LOCATION_DISTANCE_EXCEED;
+                        mService.setDistanceExceed(exceed);
+                        FmUtils.setLastSearchedLocation(mContext, mCurLocation.getLatitude(),
+                                mCurLocation.getLongitude());
+                    }
+                }
+
+                mService.startScanAsync();
+            }
+            return true;
+        });
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mContext = this;
         mMyAdapter = new MyFavoriteAdapter(mContext);
         mLvFavorites = (ListView) findViewById(R.id.station_list);
         mSearchTips = (LinearLayout) findViewById(R.id.search_tips);
@@ -155,54 +190,6 @@ public class FmFavoriteActivity extends Activity {
         if (!mIsServiceBinded) {
             bindService();
         }
-    }
-
-    /**
-     * When menu is selected
-     *
-     * @param item The selected menu item
-     * @return true to consume it, false to can handle other
-     */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                break;
-            case R.id.fm_station_list_refresh:
-                if (null != mService) {
-                    refreshMenuItem(false);
-
-                    mMyAdapter.swipResult(null);
-                    mLvFavorites.setEmptyView(mSearchTips);
-                    mSearchProgress.setIndeterminate(true);
-
-                    // If current location and last location exceed defined distance, delete the RDS database
-                    if (isGpsOpen()) {
-                        mCurLocation = mLocationManager
-                                .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (mCurLocation != null) {
-                            double[] lastLocations = FmUtils.getLastSearchedLocation(mContext);
-                            float distance[] = new float[2];
-                            Location.distanceBetween(lastLocations[0], lastLocations[1],
-                                    mCurLocation.getLatitude(), mCurLocation.getLongitude(),
-                                    distance);
-                            float searchedDistance = distance[0];
-                            boolean exceed =
-                                    searchedDistance > FmUtils.LOCATION_DISTANCE_EXCEED;
-                            mService.setDistanceExceed(exceed);
-                            FmUtils.setLastSearchedLocation(mContext, mCurLocation.getLatitude(),
-                                    mCurLocation.getLongitude());
-                        }
-                    }
-
-                    mService.startScanAsync();
-                }
-                break;
-            default:
-                break;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -337,17 +324,44 @@ public class FmFavoriteActivity extends Activity {
                 }
 
                 viewHolder.mStationFreqView.setText(FmUtils.formatStation(stationFreq));
+                viewHolder.mStationFreqView.setTextColor(
+                        MaterialColors.getColor(
+                                viewHolder.mStationFreqView,
+                                com.google.android.material.R.attr.colorOnSurface
+                        )
+                );
                 viewHolder.mStationNameView.setText(name);
                 viewHolder.mStationRdsView.setText(rds);
+                viewHolder.mStationFreqView.setTextColor(
+                        MaterialColors.getColor(
+                                viewHolder.mStationFreqView,
+                                com.google.android.material.R.attr.colorOnSurfaceVariant
+                        )
+                );
                 if (0 == isFavorite) {
-                    viewHolder.mStationTypeView.setImageResource(R.drawable.btn_fm_favorite_off);
+                    viewHolder.mStationTypeView.setImageResource(R.drawable.favorite_24px_outline);
                     viewHolder.mStationTypeView.setColorFilter(Color.BLACK,
                             PorterDuff.Mode.SRC_ATOP);
-                    viewHolder.mStationTypeView.setAlpha(0.54f);
+                    viewHolder.mStationTypeView.setImageTintList(
+                            ColorStateList.valueOf(
+                                MaterialColors.getColor(
+                                        viewHolder.mStationFreqView,
+                                        com.google.android.material.R.attr.colorOnSurface
+                                )
+                            )
+                    );
                 } else {
-                    viewHolder.mStationTypeView.setImageResource(R.drawable.btn_fm_favorite_on);
+                    viewHolder.mStationTypeView.setImageResource(R.drawable.favorite_24px_filled);
                     viewHolder.mStationTypeView.setColorFilter(null);
                     viewHolder.mStationTypeView.setAlpha(1.0f);
+                    viewHolder.mStationTypeView.setImageTintList(
+                            ColorStateList.valueOf(
+                                    MaterialColors.getColor(
+                                            viewHolder.mStationFreqView,
+                                            com.google.android.material.R.attr.colorError
+                                    )
+                            )
+                    );
                 }
 
                 viewHolder.mImgLayout.setOnClickListener(new View.OnClickListener() {

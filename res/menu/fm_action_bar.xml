@@ -20,10 +20,12 @@
           android:showAsAction ="always"
           android:title="@string/station_title"
           android:icon="@drawable/btn_fm_list_selector"
-          android:enabled="true"/>
+          android:enabled="true"
+          android:iconTint="?colorOnSurface"/>
     <item android:id="@+id/fm_headset"
           android:showAsAction ="always"
           android:icon="@drawable/btn_fm_headset_selector"
+        android:iconTint="?colorOnSurface"
           android:enabled="true">
           <menu>
               <item android:id="@+id/earphone_menu"

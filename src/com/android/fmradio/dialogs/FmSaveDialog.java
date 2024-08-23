@@ -34,6 +34,7 @@ import android.widget.Toast;
 import com.android.fmradio.FmRecorder;
 import com.android.fmradio.FmService;
 import com.android.fmradio.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 
@@ -104,17 +105,45 @@ public class FmSaveDialog extends DialogFragment {
             mRecordingSdcard = FmService.getRecordingSdcard();
         }
         setStyle(STYLE_NO_TITLE, 0);
-        View view =  getActivity().getLayoutInflater().inflate(R.layout.save_dialog, null);
-        mButtonSave = (Button) view.findViewById(R.id.save_dialog_button_save);
-        mButtonSave.setOnClickListener(mButtonOnClickListener);
-
-        mButtonDiscard = (Button) view.findViewById(R.id.save_dialog_button_discard);
-        mButtonDiscard.setOnClickListener(mButtonOnClickListener);
+        View view = getActivity().getLayoutInflater().inflate(R.layout.save_dialog, null);
 
         // Set the recording edit text
         mRecordingNameEditText = (EditText) view.findViewById(R.id.save_dialog_edittext);
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity()).setView(view);
-        return builder.create();
+        return new MaterialAlertDialogBuilder(getContext())
+                .setTitle(R.string.save_dialog_title)
+                .setMessage(R.string.save_dialog_caption)
+                .setView(view)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
+                    File recordingFolderPath = new File(mRecordingSdcard, FmRecorder.FM_RECORD_FOLDER);
+                    String msg = null;
+                    // Check the recording name whether exist
+                    mRecordingNameToSave = mRecordingNameEditText.getText().toString().trim();
+                    File recordingFileToSave = new File(recordingFolderPath, mRecordingNameToSave
+                            + FmRecorder.RECORDING_FILE_EXTENSION);
+
+                    mIsNeedCheckFilenameExist = !mRecordingNameToSave.equals(mDefaultRecordingName);
+
+                    if (recordingFileToSave.exists() && mIsNeedCheckFilenameExist) {
+                        // show a toast notification if can't renaming a file/folder
+                        // to the same name
+                        msg = mRecordingNameEditText.getText().toString() + " "
+                                + getActivity().getResources().getString(R.string.already_exists);
+                        Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
+                    } else {
+                        mRecordingFileName = mRecordingNameToSave;
+                        dismissAllowingStateLoss();
+                    }
+                })
+                .setNegativeButton(R.string.btn_discard_recording, (dialog, which) -> {
+                    File recordingFolderPath = new File(mRecordingSdcard, FmRecorder.FM_RECORD_FOLDER);
+                    dismissAllowingStateLoss();
+                    // here need delete discarded recording file
+                    File needToDelete = new File(recordingFolderPath, mTempRecordingName);
+                    if (needToDelete.exists()) {
+                        needToDelete.delete();
+                    }
+                })
+                .create();
     }
 
     @Override
@@ -200,56 +229,6 @@ public class FmSaveDialog extends DialogFragment {
             }
         });
     }
-
-    private OnClickListener mButtonOnClickListener = new OnClickListener() {
-        /**
-         * Define the button operation
-         */
-        @Override
-        public void onClick(View v) {
-
-            File recordingFolderPath = new File(mRecordingSdcard, FmRecorder.FM_RECORD_FOLDER);
-
-            switch (v.getId()) {
-                case R.id.save_dialog_button_save:
-                String msg = null;
-                // Check the recording name whether exist
-                mRecordingNameToSave = mRecordingNameEditText.getText().toString().trim();
-                File recordingFileToSave = new File(recordingFolderPath, mRecordingNameToSave
-                                + FmRecorder.RECORDING_FILE_EXTENSION);
-
-                if (mRecordingNameToSave.equals(mDefaultRecordingName)) {
-                    mIsNeedCheckFilenameExist = false;
-                } else {
-                    mIsNeedCheckFilenameExist = true;
-                }
-
-                if (recordingFileToSave.exists() && mIsNeedCheckFilenameExist) {
-                    // show a toast notification if can't renaming a file/folder
-                    // to the same name
-                    msg = mRecordingNameEditText.getText().toString() + " "
-                            + getActivity().getResources().getString(R.string.already_exists);
-                    Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
-                } else {
-                    mRecordingFileName = mRecordingNameToSave;
-                    dismissAllowingStateLoss();
-                }
-                break;
-
-                case R.id.save_dialog_button_discard:
-                    dismissAllowingStateLoss();
-                    // here need delete discarded recording file
-                    File needToDelete = new File(recordingFolderPath, mTempRecordingName);
-                    if (needToDelete.exists()) {
-                        needToDelete.delete();
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-        }
-    };
 
     /**
      * The listener for click Save or Discard

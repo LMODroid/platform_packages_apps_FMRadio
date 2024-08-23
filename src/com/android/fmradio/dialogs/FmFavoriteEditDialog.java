@@ -17,20 +17,16 @@
 package com.android.fmradio.dialogs;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.Selection;
-import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
 import com.android.fmradio.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
  * Edit favorite station name and frequency, caller should implement
@@ -97,69 +93,16 @@ public class FmFavoriteEditDialog extends DialogFragment {
         mStationNameEditor.setText(stationName);
         Editable text = mStationNameEditor.getText();
         Selection.setSelection(text, text.length());
-        return new AlertDialog.Builder(getActivity())
-                // Must call setTitle here or the title will not be displayed.
-                .setTitle(getString(R.string.rename)).setView(v)
-                .setPositiveButton(R.string.save,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                String newName = mStationNameEditor.getText().toString().trim();
-                                mListener.editFavorite(stationFreq, newName);
-                            }
-                        })
+        return new MaterialAlertDialogBuilder(getContext())
+                .setTitle(R.string.rename)
+                .setView(v)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
+                    String newName;
+                    if (mStationNameEditor.getText() == null) { newName = ""; } else { newName = mStationNameEditor.getText().toString().trim(); }
+                    mListener.editFavorite(stationFreq, newName);
+                })
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
     }
 
-    /**
-     * Set the dialog edit text and other attribute.
-     */
-    @Override
-    public void onResume() {
-        super.onResume();
-        setTextChangedCallback();
-        String toName = mStationNameEditor.getText().toString();
-        // empty or blank or white space only name is not allowed
-        toggleSaveButton(toName != null && TextUtils.getTrimmedLength(toName) > 0);
-    }
-
-    /**
-     * This method register callback and set filter to Edit, in order to make
-     * sure that user input is legal. The input can't be empty/blank/all-spaces filename
-     */
-    private void setTextChangedCallback() {
-        mStationNameEditor.addTextChangedListener(new TextWatcher() {
-            // not use, so don't need to implement it
-            @Override
-            public void afterTextChanged(Editable arg0) {
-            }
-
-            // not use, so don't need to implement it
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            /**
-             * check user input whether is null or all white space.
-             */
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // empty or blank or white space only name is not allowed
-                toggleSaveButton(TextUtils.getTrimmedLength(s) > 0);
-            }
-        });
-    }
-
-    /**
-     * This method enables or disables save button to forbid renaming station name to null.
-     * @param isEnabled true to enable save button, false to disable save button
-     */
-    private void toggleSaveButton(boolean isEnabled) {
-        final AlertDialog dialog = (AlertDialog) getDialog();
-        if (dialog == null) {
-            return;
-        }
-        final Button button = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-        button.setEnabled(isEnabled);
-    }
 }
