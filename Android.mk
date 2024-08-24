@@ -32,7 +32,7 @@ LOCAL_REQUIRED_MODULES := \
     privapp_whitelist_com.android.fmradio.xml \
     FmRecordingsProvider
 LOCAL_STATIC_ANDROID_LIBRARIES := \
-    androidx.cardview_cardview
+    FMRadio_com.google.android.material_material
 
 LOCAL_PROGUARD_ENABLED := disabled
 LOCAL_USE_AAPT2 := true
