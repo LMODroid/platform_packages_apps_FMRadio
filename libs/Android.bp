@@ -1,0 +1,103 @@
+android_library_import {
+    name: "FMRadio_com.google.android.material_material-nodeps",
+    aars: ["material-1.12.0.aar"],
+    sdk_version: "34",
+    min_sdk_version: "19",
+    apex_available: [
+        "//apex_available:platform",
+        "//apex_available:anyapex",
+    ],
+    static_libs: [
+        "androidx-constraintlayout_constraintlayout",
+        "androidx.annotation_annotation",
+        "androidx.annotation_annotation-experimental",
+        "androidx.appcompat_appcompat",
+        "androidx.cardview_cardview",
+        "androidx.coordinatorlayout_coordinatorlayout",
+        "FMRadio_androidx.core_core",
+        "androidx.drawerlayout_drawerlayout",
+        "androidx.dynamicanimation_dynamicanimation",
+        "androidx.fragment_fragment",
+        "androidx.lifecycle_lifecycle-runtime",
+        "androidx.recyclerview_recyclerview",
+        "androidx.transition_transition",
+        "androidx.vectordrawable_vectordrawable",
+        "androidx.viewpager2_viewpager2",
+        "error_prone_annotations",
+    ],
+}
+
+android_library {
+    name: "FMRadio_com.google.android.material_material",
+    sdk_version: "34",
+    min_sdk_version: "19",
+    apex_available: [
+        "//apex_available:platform",
+        "//apex_available:anyapex",
+    ],
+    manifest: "manifests/com.google.android.material_material/AndroidManifest.xml",
+    static_libs: [
+        "FMRadio_com.google.android.material_material-nodeps",
+        "androidx-constraintlayout_constraintlayout",
+        "androidx.annotation_annotation",
+        "androidx.annotation_annotation-experimental",
+        "androidx.appcompat_appcompat",
+        "androidx.cardview_cardview",
+        "androidx.coordinatorlayout_coordinatorlayout",
+        "FMRadio_androidx.core_core",
+        "androidx.drawerlayout_drawerlayout",
+        "androidx.dynamicanimation_dynamicanimation",
+        "androidx.fragment_fragment",
+        "androidx.lifecycle_lifecycle-runtime",
+        "androidx.recyclerview_recyclerview",
+        "androidx.transition_transition",
+        "androidx.vectordrawable_vectordrawable",
+        "androidx.viewpager2_viewpager2",
+        "error_prone_annotations",
+    ],
+    java_version: "1.7",
+}
+
+android_library_import {
+    name: "FMRadio_androidx.core_core-nodeps",
+    aars: ["core-1.13.0-beta01.aar"],
+    sdk_version: "31",
+    apex_available: [
+        "//apex_available:platform",
+        "//apex_available:anyapex",
+    ],
+    min_sdk_version: "19",
+    static_libs: [
+        "androidx.annotation_annotation",
+        "androidx.annotation_annotation-experimental",
+        "androidx.collection_collection",
+        "androidx.concurrent_concurrent-futures",
+        "androidx.interpolator_interpolator",
+        "androidx.lifecycle_lifecycle-runtime",
+        "androidx.versionedparcelable_versionedparcelable",
+        "kotlin-stdlib",
+    ],
+}
+
+android_library {
+    name: "FMRadio_androidx.core_core",
+    sdk_version: "31",
+    apex_available: [
+        "//apex_available:platform",
+        "//apex_available:anyapex",
+    ],
+    min_sdk_version: "19",
+    manifest: "manifests/androidx.core_core/AndroidManifest.xml",
+    static_libs: [
+        "FMRadio_androidx.core_core-nodeps",
+        "androidx.annotation_annotation",
+        "androidx.annotation_annotation-experimental",
+        "androidx.collection_collection",
+        "androidx.concurrent_concurrent-futures",
+        "androidx.interpolator_interpolator",
+        "androidx.lifecycle_lifecycle-runtime",
+        "androidx.versionedparcelable_versionedparcelable",
+        "kotlin-stdlib",
+    ],
+    java_version: "1.7",
+}
