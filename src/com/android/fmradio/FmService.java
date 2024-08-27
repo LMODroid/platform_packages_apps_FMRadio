@@ -62,6 +62,8 @@ import android.os.Process;
 import android.text.TextUtils;
 import android.util.Log;
 
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK;
+
 import com.android.fmradio.FmStation.Station;
 
 import java.util.ArrayList;
@@ -1872,14 +1874,14 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
 
         Notification n = mNotificationBuilder.build();
         n.flags &= ~Notification.FLAG_NO_CLEAR;
-        startForeground(NOTIFICATION_ID, n);
+        startForeground(NOTIFICATION_ID, n, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
     }
 
     /**
      * Show notification
      */
     public void showRecordingNotification(Notification notification) {
-        startForeground(NOTIFICATION_ID, notification);
+        startForeground(NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
     }
 
     /**
