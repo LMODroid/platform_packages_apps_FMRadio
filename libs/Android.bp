@@ -2,7 +2,7 @@ android_library_import {
     name: "FMRadio_com.google.android.material_material-nodeps",
     aars: ["material-1.12.0.aar"],
     sdk_version: "34",
-    min_sdk_version: "19",
+    min_sdk_version: "21",
     apex_available: [
         "//apex_available:platform",
         "//apex_available:anyapex",
@@ -30,7 +30,7 @@ android_library_import {
 android_library {
     name: "FMRadio_com.google.android.material_material",
     sdk_version: "34",
-    min_sdk_version: "19",
+    min_sdk_version: "21",
     apex_available: [
         "//apex_available:platform",
         "//apex_available:anyapex",
