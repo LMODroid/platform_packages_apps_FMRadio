@@ -952,6 +952,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         refreshPlayButton(false);
 
         int recordAudioPermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO);
+        int bluetoothConnectPermission = checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT);
         List<String> mPermissionStrings = new ArrayList<String>();
         boolean mRequest = false;
 
@@ -959,6 +960,12 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
             mPermissionStrings.add(Manifest.permission.RECORD_AUDIO);
             mRequest = true;
         }
+
+        if (bluetoothConnectPermission != PackageManager.PERMISSION_GRANTED) {
+            mPermissionStrings.add(Manifest.permission.BLUETOOTH_CONNECT);
+            mRequest = true;
+        }
+
         if (mRequest == true) {
             String[] mPermissionList = new String[mPermissionStrings.size()];
             mPermissionList = mPermissionStrings.toArray(mPermissionList);
@@ -1302,12 +1309,15 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
             return;
         }
         if (requestCode == PERMISSION_REQUEST_POWER_ON) {
-            granted = (grantResults[0] == PackageManager.PERMISSION_GRANTED);
-            if (!granted) {
-                mShowPermission = shouldShowRequestPermissionRationale(permissions[0]);
+            for (int i = 0; i < permissions.length; i++) {
+                granted = granted && grantResults[i] == PackageManager.PERMISSION_GRANTED;
+                if (!granted) {
+                    mShowPermission = mShowPermission
+                            && shouldShowRequestPermissionRationale(permissions[i]);
+                }
             }
             Log.i(TAG, "<onRequestPermissionsResult> Power on fm granted" + granted);
-            if (granted == true) {
+            if (granted) {
                 if (mService != null) {
                     mService.setRecordingPermission(true);
                     powerUpFm();
