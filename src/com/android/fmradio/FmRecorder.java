@@ -49,8 +49,6 @@ public class FmRecorder implements AudioRecorder.Callback {
     public static final String RECORDING_FILE_EXTENSION = ".3gpp";
     // recording file folder
     public static final String FM_RECORD_FOLDER = "Documents/FM Recording";
-    private static final String RECORDING_FILE_TYPE = "audio/3gpp";
-    private static final String RECORDING_FILE_SOURCE = "FM Recordings";
     // error type no sdcard
     public static final int ERROR_SDCARD_NOT_PRESENT = 0;
     // error type sdcard not have enough space
@@ -242,8 +240,6 @@ public class FmRecorder implements AudioRecorder.Callback {
             mRecordFile = newRecordFile;
         }
         mIsRecordingFileSaved = true;
-        // insert recording file info to database
-        addRecordingToDatabase(context);
     }
 
     /**
@@ -335,169 +331,6 @@ public class FmRecorder implements AudioRecorder.Callback {
         mInternalState = state;
         if (mStateListener != null) {
             mStateListener.onRecorderStateChanged(state);
-        }
-    }
-
-    /**
-     * Save recording file info to database
-     *
-     * @param context The context
-     */
-    private void addRecordingToDatabase(final Context context) {
-        long curTime = System.currentTimeMillis();
-        long modDate = mRecordFile.lastModified();
-        Date date = new Date(curTime);
-
-        java.text.DateFormat dateFormatter = DateFormat.getDateFormat(context);
-        java.text.DateFormat timeFormatter = DateFormat.getTimeFormat(context);
-        String title = getRecordFileName();
-        StringBuilder stringBuilder = new StringBuilder()
-                .append(FM_RECORD_FOLDER)
-                .append(" ")
-                .append(dateFormatter.format(date))
-                .append(" ")
-                .append(timeFormatter.format(date));
-        String artist = stringBuilder.toString();
-
-        final int size = 9;
-        ContentValues cv = new ContentValues(size);
-        cv.put(MediaStore.Audio.Media.IS_MUSIC, 1);
-        cv.put(MediaStore.Audio.Media.TITLE, title);
-        cv.put(MediaStore.Audio.Media.DATA, mRecordFile.getAbsolutePath());
-        final int oneSecond = 1000;
-        cv.put(MediaStore.Audio.Media.DATE_ADDED, (int) (curTime / oneSecond));
-        cv.put(MediaStore.Audio.Media.DATE_MODIFIED, (int) (modDate / oneSecond));
-        cv.put(MediaStore.Audio.Media.MIME_TYPE, RECORDING_FILE_TYPE);
-        cv.put(MediaStore.Audio.Media.ARTIST, artist);
-        cv.put(MediaStore.Audio.Media.ALBUM, RECORDING_FILE_SOURCE);
-        cv.put(MediaStore.Audio.Media.DURATION, mRecordTime);
-
-        int recordingId = addToAudioTable(context, cv);
-        if (recordingId < 0) {
-            // insert failed
-            return;
-        }
-        int playlistId = getPlaylistId(context);
-        if (playlistId < 0) {
-            // play list not exist, create FM Recording play list
-            playlistId = createPlaylist(context);
-        }
-        if (playlistId < 0) {
-            // insert playlist failed
-            return;
-        }
-        // insert item to FM recording play list
-        addToPlaylist(context, playlistId, recordingId);
-        // scan to update duration
-        MediaScannerConnection.scanFile(context, new String[] { mRecordFile.getPath() },
-                null, null);
-    }
-
-    /**
-     * Get the play list ID
-     * @param context Current passed in Context instance
-     * @return The play list ID
-     */
-    public static int getPlaylistId(final Context context) {
-        Cursor playlistCursor = context.getContentResolver().query(
-                MediaStore.Audio.Playlists.getContentUri("external"),
-                new String[] {
-                    MediaStore.Audio.Playlists._ID
-                },
-                MediaStore.Audio.Playlists.NAME + "=?",
-                new String[] { RECORDING_FILE_SOURCE },
-                null);
-        int playlistId = -1;
-        if (null != playlistCursor) {
-            try {
-                if (playlistCursor.moveToFirst()) {
-                    playlistId = playlistCursor.getInt(0);
-                }
-            } finally {
-                playlistCursor.close();
-            }
-        }
-        return playlistId;
-    }
-
-    private int createPlaylist(final Context context) {
-        final int size = 1;
-        ContentValues cv = new ContentValues(size);
-        cv.put(MediaStore.Audio.Playlists.NAME, RECORDING_FILE_SOURCE);
-        Uri newPlaylistUri = context.getContentResolver().insert(
-                MediaStore.Audio.Playlists.getContentUri("external"), cv);
-        if (newPlaylistUri == null) {
-            Log.d(TAG, "createPlaylist, create playlist failed");
-            return -1;
-        }
-        return Integer.valueOf(newPlaylistUri.getLastPathSegment());
-    }
-
-    private int addToAudioTable(final Context context, final ContentValues cv) {
-        ContentResolver resolver = context.getContentResolver();
-        int id = -1;
-
-        Cursor cursor = null;
-
-        try {
-            cursor = resolver.query(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    new String[] { MediaStore.Audio.Media._ID },
-                    MediaStore.Audio.Media.DATA + "=?",
-                    new String[] { mRecordFile.getPath() },
-                    null);
-            if (cursor != null && cursor.moveToFirst()) {
-                // Exist in database, just update it
-                id = cursor.getInt(0);
-                resolver.update(ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id),
-                        cv,
-                        null,
-                        null);
-            } else {
-                // insert new entry to database
-                Uri uri = context.getContentResolver().insert(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cv);
-                if (uri != null) {
-                    id = Integer.valueOf(uri.getLastPathSegment());
-                }
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-        return id;
-    }
-
-    private void addToPlaylist(final Context context, final int playlistId, final int recordingId) {
-        ContentResolver resolver = context.getContentResolver();
-        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
-        int order = 0;
-        Cursor cursor = null;
-        try {
-            cursor = resolver.query(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    new String[] { MediaStore.Audio.Media._ID },
-                    MediaStore.Audio.Media.DATA + "=?",
-                    new String[] { mRecordFile.getPath() },
-                    null);
-            if (cursor != null && cursor.moveToFirst()) {
-                // Exist in database, just update it
-                order = cursor.getCount();
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-        ContentValues cv = new ContentValues(2);
-        cv.put(MediaStore.Audio.Playlists.Members.AUDIO_ID, recordingId);
-        cv.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, order);
-        try {
-            context.getContentResolver().insert(uri, cv);
-        } catch (SecurityException e) {
-            e.printStackTrace();
         }
     }
 
