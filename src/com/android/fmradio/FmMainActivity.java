@@ -832,26 +832,16 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
 
             case R.id.fm_record_list:
                 Intent playMusicIntent = new Intent(Intent.ACTION_VIEW);
-                int playlistId = FmRecorder.getPlaylistId(mContext);
-                Bundle extras = new Bundle();
-                extras.putInt("playlist", playlistId);
                 try {
-                    playMusicIntent.putExtras(extras);
-                    playMusicIntent.setType("vnd.android.cursor.dir/playlist");
+                    playMusicIntent.setDataAndType(Uri.parse("content://" +
+                                    "com.android.externalstorage.documents/document/" +
+                                    "primary%3ADocuments%2FFM%20Recording"),
+                            "vnd.android.document/directory");
                     startActivity(playMusicIntent);
-                } catch (IllegalArgumentException | ActivityNotFoundException e1) {
-                    try {
-                        playMusicIntent = new Intent(Intent.ACTION_VIEW);
-                        playMusicIntent.setDataAndType(Uri.parse("content://" +
-                                "com.android.externalstorage.documents/document/" +
-                                "primary%3ADocuments%2FFM%20Recording"),
-                                "vnd.android.document/directory");
-                        startActivity(playMusicIntent);
-                    } catch (ActivityNotFoundException e2) {
-                        // No activity respond
-                        Log.d(TAG,
-                                "onOptionsItemSelected, No activity respond playlist view intent");
-                    }
+                } catch (ActivityNotFoundException e2) {
+                    // No activity respond
+                    Log.d(TAG,
+                            "onOptionsItemSelected, No activity respond playlist view intent");
                 }
                 break;
             default:
