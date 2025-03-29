@@ -411,18 +411,8 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
 
        // need to create new audio record and audio play back track,
        // because input/output device may be changed.
-       if (mAudioRecord != null) {
-           if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-               mAudioRecord.stop();
-           }
-           mAudioRecord.release();
-           mAudioRecord = null;
-       }
-       if (mAudioTrack != null) {
-           mAudioTrack.stop();
-           mAudioTrack.release();
-           mAudioTrack = null;
-       }
+       releaseAudioRecorder();
+       releaseAudioTrack();
        initAudioRecordSink();
 
         mIsRender = true;
@@ -725,10 +715,7 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
             if (isRdsSupported()) {
                 stopRdsThread();
             }
-
-            if (mWakeLock.isHeld()) {
-                mWakeLock.release();
-            }
+            releaseWakeLock();
             // Remove the notification in the title bar.
             removeNotification();
             return false;
@@ -739,11 +726,7 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
         if (isRdsSupported()) {
             stopRdsThread();
         }
-
-        if (mWakeLock.isHeld()) {
-            mWakeLock.release();
-        }
-
+        releaseWakeLock();
         // Remove the notification in the title bar.
         removeNotification();
         return true;
@@ -1331,10 +1314,15 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
     // Thread 1: onCreate() or startRender()
     // Thread 2: onAudioPatchListUpdate() or startRender()
     private synchronized void initAudioRecordSink() {
-        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.RADIO_TUNER,
-                SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, RECORD_BUF_SIZE);
-        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, RECORD_BUF_SIZE, AudioTrack.MODE_STREAM);
+        if (mAudioRecord == null) {
+            mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.RADIO_TUNER,
+                    SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, RECORD_BUF_SIZE);
+        }
+        if (mAudioTrack == null) {
+            mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                    SAMPLE_RATE, CHANNEL_CONFIG,
+                    AUDIO_FORMAT, RECORD_BUF_SIZE, AudioTrack.MODE_STREAM);
+        }
     }
 
     private synchronized int createAudioPatch() {
@@ -1444,6 +1432,12 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
         }
     }
 
+    private synchronized void releaseWakeLock() {
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
+    }
+
     private synchronized void releaseAudioPatch() {
         if (mAudioPatch != null) {
             Log.d(TAG, "releaseAudioPatch");
@@ -1452,6 +1446,26 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
         }
         mAudioSource = null;
         mAudioSink = null;
+    }
+
+    private synchronized void releaseAudioTrack() {
+        if (mAudioTrack != null) {
+            if (mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+                mAudioTrack.stop();
+            }
+            mAudioTrack.release();
+            mAudioTrack = null;
+        }
+    }
+
+    private synchronized void releaseAudioRecorder() {
+        if (mAudioRecord != null) {
+            if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                mAudioRecord.stop();
+            }
+            mAudioRecord.release();
+            mAudioRecord = null;
+        }
     }
 
     private void registerFmBroadcastReceiver() {
@@ -1489,7 +1503,10 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
         }
         stopRender();
         exitRenderThread();
+        releaseWakeLock();
         releaseAudioPatch();
+        releaseAudioRecorder();
+        releaseAudioTrack();
         unregisterAudioPortUpdateListener();
         super.onDestroy();
     }
