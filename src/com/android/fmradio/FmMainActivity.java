@@ -408,6 +408,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         @Override
         public void onAnimationEnd(Animation animation) {
             if (!isAntennaAvailable()) {
+                changeToNoHeadsetLayout();
                 return;
             }
             changeToMainLayout();
@@ -436,6 +437,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         @Override
         public void onAnimationEnd(Animation animation) {
             if (isAntennaAvailable()) {
+                changeToMainLayout();
                 return;
             }
             changeToNoHeadsetLayout();
@@ -1204,12 +1206,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
      * play main animation
      */
     private void playMainAnimation() {
-        if (null == mService) {
-            Log.e(TAG, "playMainAnimation, mService is null");
-            return;
-        }
-        if (mMainLayout.isShown()) {
-            Log.w(TAG, "playMainAnimation, main layout has already shown");
+        if (null == mService || mMainLayout.isShown()) {
             return;
         }
         Animation animation = AnimationUtils.loadAnimation(mContext,
@@ -1238,12 +1235,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
      * play change to no headset layout animation
      */
     private void playNoHeadsetAnimation() {
-        if (null == mService) {
-            Log.e(TAG, "playNoHeadsetAnimation, mService is null");
-            return;
-        }
-        if (mNoHeadsetLayout.isShown()) {
-            Log.w(TAG,"playNoHeadsetAnimation, no headset layout has already shown");
+        if (null == mService || mNoHeadsetLayout.isShown()) {
             return;
         }
         Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.main_alpha_out);
