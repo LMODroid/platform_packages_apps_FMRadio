@@ -255,22 +255,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
                     boolean hasAntenna = bundle.getBoolean(FmListener.KEY_IS_SWITCH_ANTENNA) ||
                             FmUtils.hasMtkFmShortAntennaSupport();
                     // if receive headset plug out, need set headset mode on ui
-                    if (hasAntenna) {
-                        if (mIsActivityForeground) {
-                            cancelNoHeadsetAnimation();
-                            playMainAnimation();
-                        } else {
-                            changeToMainLayout();
-                        }
-                    } else {
-                        mMenuItemHeadset.setIcon(R.drawable.btn_fm_headset_selector);
-                        if (mIsActivityForeground) {
-                            cancelMainAnimation();
-                            playNoHeadsetAnimation();
-                        } else {
-                            changeToNoHeadsetLayout();
-                        }
-                    }
+                    onAntennaChangeStatus(hasAntenna);
                     break;
 
                 case FmListener.MSGID_POWERDOWN_FINISHED:
@@ -347,6 +332,98 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         }
     };
 
+
+    private void onAntennaChangeStatus(boolean status) {
+        onAntennaChangeStatus(status, false);
+    }
+
+    private void onAntennaChangeStatus(boolean status, boolean isShowImmediately) {
+        if (isShowImmediately) {
+            resetState(status);
+            return;
+        }
+
+        if (status) {
+            fadeOutViews(() -> fadeInViews(mMainLayout, mBtnPlayContainer),
+                    mNoEarphoneTextLayout, mNoHeadsetImgView, mNoHeadsetTitleTextView,
+                    mNoHeadsetImgViewWrap, mNoHeadsetLayout);
+        } else {
+            fadeOutViews(() -> fadeInViews(mNoEarphoneTextLayout, mNoHeadsetImgView, mNoHeadsetTitleTextView,
+                    mNoHeadsetImgViewWrap, mNoHeadsetLayout),
+                    mMainLayout, mBtnPlayContainer);
+        }
+    }
+
+    private void resetState(boolean hasAntenna) {
+        if (hasAntenna) {
+            setViewsVisibility(View.GONE,
+                    mNoEarphoneTextLayout, mNoHeadsetImgView, mNoHeadsetImgViewWrap,
+                    mNoHeadsetTitleTextView, mNoHeadsetLayout);
+
+            resetAlpha(mMainLayout, mBtnPlayContainer);
+            setViewsVisibility(View.VISIBLE, mMainLayout, mBtnPlayContainer);
+            updateNavBarColor(mMainLayout);
+        } else {
+            setViewsVisibility(View.GONE, mMainLayout, mBtnPlayContainer);
+
+            resetAlpha(mNoEarPhoneTxt, mNoHeadsetImgView, mNoHeadsetTitleTextView,
+                    mNoHeadsetImgViewWrap, mNoHeadsetLayout);
+
+            setViewsVisibility(View.VISIBLE,
+                    mNoEarphoneTextLayout, mNoHeadsetImgView, mNoHeadsetTitleTextView,
+                    mNoHeadsetImgViewWrap, mNoHeadsetLayout);
+
+            updateNavBarColor(mMainLayout);
+            mNoHeadsetImgViewWrap.setElevation(mMiddleShadowSize);
+        }
+    }
+
+    private void resetAlpha(View... views) {
+        for (View view : views) {
+            view.setAlpha(1f);
+        }
+    }
+
+    private void setViewsVisibility(int visibility, View... views) {
+        for (View view : views) {
+            view.setVisibility(visibility);
+        }
+    }
+
+    private static final long FADE_DURATION = 300;
+
+    private void fadeInViews(View... views) {
+        for (View view : views) {
+            view.setAlpha(0f);
+            view.setVisibility(View.VISIBLE);
+            view.animate()
+                    .alpha(1f)
+                    .setDuration(FADE_DURATION)
+                    .start();
+        }
+    }
+
+    private void fadeOutViews(Runnable onEnd, View... views) {
+        final int[] finishedCount = {0};
+        for (View view : views) {
+            view.animate()
+                    .alpha(0f)
+                    .setDuration(FADE_DURATION)
+                    .withEndAction(() -> {
+                        view.setVisibility(View.GONE);
+                        if (++finishedCount[0] == views.length && onEnd != null) {
+                            onEnd.run();
+                        }
+                    })
+                    .start();
+        }
+    }
+
+    private void updateNavBarColor(View baseView) {
+        getWindow().setNavigationBarColor(
+                MaterialColors.getColor(baseView, com.google.android.material.R.attr.colorSurfaceContainer));
+    }
+
     // When call bind service, it will call service connect. register call back
     // listener and initial device
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -402,62 +479,6 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         public void onServiceDisconnected(ComponentName className) {
         }
     };
-
-    private class NoHeadsetAlpaOutListener implements AnimationListener {
-
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            if (!isAntennaAvailable()) {
-                changeToNoHeadsetLayout();
-                return;
-            }
-            changeToMainLayout();
-            cancelMainAnimation();
-            Animation anim = AnimationUtils.loadAnimation(mContext,
-                    R.anim.main_alpha_in);
-            mMainLayout.startAnimation(anim);
-            getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurfaceContainer));
-            anim = AnimationUtils.loadAnimation(mContext, R.anim.floatbtn_alpha_in);
-
-            mBtnPlayContainer.startAnimation(anim);
-        }
-
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationStart(Animation animation) {
-            mNoHeadsetImgViewWrap.setElevation(0);
-        }
-    }
-
-    private class NoHeadsetAlpaInListener implements AnimationListener {
-
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            if (isAntennaAvailable()) {
-                changeToMainLayout();
-                return;
-            }
-            changeToNoHeadsetLayout();
-            cancelNoHeadsetAnimation();
-            Animation anim = AnimationUtils.loadAnimation(mContext,
-                    R.anim.noeaphone_alpha_in);
-            mNoHeadsetLayout.startAnimation(anim);
-            getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurface));
-        }
-
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationStart(Animation animation) {
-            mNoHeadsetImgViewWrap.setElevation(mMiddleShadowSize);
-        }
-
-    }
 
     /**
      * Update the favorite UI state
@@ -653,9 +674,9 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         super.onStart();
         // check layout onstart
         if (isAntennaAvailable()) {
-            changeToMainLayout();
+            onAntennaChangeStatus(true, true);
         } else {
-            changeToNoHeadsetLayout();
+            onAntennaChangeStatus(false, true);
         }
 
         // Should start FM service first.
@@ -1197,86 +1218,6 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mButtonPrevStation.setOnClickListener(mButtonClickListener);
         mButtonNextStation.setOnClickListener(mButtonClickListener);
         mButtonPlay.setOnClickListener(mButtonClickListener);
-    }
-
-    /**
-     * play main animation
-     */
-    private void playMainAnimation() {
-        if (null == mService || mMainLayout.isShown()) {
-            return;
-        }
-        Animation animation = AnimationUtils.loadAnimation(mContext,
-                R.anim.noeaphone_alpha_out);
-        mNoEarPhoneTxt.startAnimation(animation);
-        mNoHeadsetImgView.startAnimation(animation);
-        mNoHeadsetTitleTextView.startAnimation(animation);
-
-        animation = AnimationUtils.loadAnimation(mContext,
-                R.anim.noeaphone_translate_out);
-        animation.setAnimationListener(new NoHeadsetAlpaOutListener());
-        mNoEarphoneTextLayout.startAnimation(animation);
-    }
-
-    /**
-     * clear main layout animation
-     */
-    private void cancelMainAnimation() {
-        mNoEarPhoneTxt.clearAnimation();
-        mNoHeadsetImgView.clearAnimation();
-        mNoHeadsetTitleTextView.clearAnimation();
-        mNoEarphoneTextLayout.clearAnimation();
-    }
-
-    /**
-     * play change to no headset layout animation
-     */
-    private void playNoHeadsetAnimation() {
-        if (null == mService || mNoHeadsetLayout.isShown()) {
-            return;
-        }
-        Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.main_alpha_out);
-        mMainLayout.startAnimation(animation);
-        animation.setAnimationListener(new NoHeadsetAlpaInListener());
-        mBtnPlayContainer.startAnimation(animation);
-    }
-
-    /**
-     * clear no headset layout animation
-     */
-    private void cancelNoHeadsetAnimation() {
-        mMainLayout.clearAnimation();
-        mBtnPlayContainer.clearAnimation();
-    }
-
-    /**
-     * change to main layout
-     */
-    private void changeToMainLayout() {
-        mNoEarphoneTextLayout.setVisibility(View.GONE);
-        mNoHeadsetImgView.setVisibility(View.GONE);
-        mNoHeadsetImgViewWrap.setVisibility(View.GONE);
-        mNoHeadsetTitleTextView.setVisibility(View.GONE);
-        mNoHeadsetLayout.setVisibility(View.GONE);
-        // change to main layout
-        mMainLayout.setVisibility(View.VISIBLE);
-        getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurfaceContainer));
-        mBtnPlayContainer.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * change to no headset layout
-     */
-    private void changeToNoHeadsetLayout() {
-        mMainLayout.setVisibility(View.GONE);
-        mBtnPlayContainer.setVisibility(View.GONE);
-        mNoEarphoneTextLayout.setVisibility(View.VISIBLE);
-        mNoHeadsetImgView.setVisibility(View.VISIBLE);
-        mNoHeadsetTitleTextView.setVisibility(View.VISIBLE);
-        mNoHeadsetImgViewWrap.setVisibility(View.VISIBLE);
-        mNoHeadsetLayout.setVisibility(View.VISIBLE);
-        getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurface));
-        mNoHeadsetImgViewWrap.setElevation(mMiddleShadowSize);
     }
 
     @Override
