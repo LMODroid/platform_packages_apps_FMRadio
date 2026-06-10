@@ -254,23 +254,10 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
                     bundle = msg.getData();
                     boolean hasAntenna = bundle.getBoolean(FmListener.KEY_IS_SWITCH_ANTENNA) ||
                             FmUtils.hasMtkFmShortAntennaSupport();
-                    // if receive headset plug out, need set headset mode on ui
-                    if (hasAntenna) {
-                        if (mIsActivityForeground) {
-                            cancelNoHeadsetAnimation();
-                            playMainAnimation();
-                        } else {
-                            changeToMainLayout();
-                        }
-                    } else {
+                    if (!hasAntenna) {
                         mMenuItemHeadset.setIcon(R.drawable.btn_fm_headset_selector);
-                        if (mIsActivityForeground) {
-                            cancelMainAnimation();
-                            playNoHeadsetAnimation();
-                        } else {
-                            changeToNoHeadsetLayout();
-                        }
                     }
+                    handleAntennaChange(hasAntenna);
                     break;
 
                 case FmListener.MSGID_POWERDOWN_FINISHED:
@@ -384,6 +371,11 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
                     }
                     updateCurrentStation();
                     updateMenuStatus();
+                    if (isAntennaAvailable()) {
+                        changeToMainLayout();
+                    } else {
+                        changeToNoHeadsetLayout();
+                    }
                 } else {
                     // Normal case will not come here
                     // Need to exit FM for this case
@@ -402,62 +394,6 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         public void onServiceDisconnected(ComponentName className) {
         }
     };
-
-    private class NoHeadsetAlpaOutListener implements AnimationListener {
-
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            if (!isAntennaAvailable()) {
-                changeToNoHeadsetLayout();
-                return;
-            }
-            changeToMainLayout();
-            cancelMainAnimation();
-            Animation anim = AnimationUtils.loadAnimation(mContext,
-                    R.anim.main_alpha_in);
-            mMainLayout.startAnimation(anim);
-            getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurfaceContainer));
-            anim = AnimationUtils.loadAnimation(mContext, R.anim.floatbtn_alpha_in);
-
-            mBtnPlayContainer.startAnimation(anim);
-        }
-
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationStart(Animation animation) {
-            mNoHeadsetImgViewWrap.setElevation(0);
-        }
-    }
-
-    private class NoHeadsetAlpaInListener implements AnimationListener {
-
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            if (isAntennaAvailable()) {
-                changeToMainLayout();
-                return;
-            }
-            changeToNoHeadsetLayout();
-            cancelNoHeadsetAnimation();
-            Animation anim = AnimationUtils.loadAnimation(mContext,
-                    R.anim.noeaphone_alpha_in);
-            mNoHeadsetLayout.startAnimation(anim);
-            getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurface));
-        }
-
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationStart(Animation animation) {
-            mNoHeadsetImgViewWrap.setElevation(mMiddleShadowSize);
-        }
-
-    }
 
     /**
      * Update the favorite UI state
@@ -1199,54 +1135,31 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mButtonPlay.setOnClickListener(mButtonClickListener);
     }
 
-    /**
-     * play main animation
-     */
-    private void playMainAnimation() {
-        if (null == mService || mMainLayout.isShown()) {
-            return;
-        }
-        Animation animation = AnimationUtils.loadAnimation(mContext,
-                R.anim.noeaphone_alpha_out);
-        mNoEarPhoneTxt.startAnimation(animation);
-        mNoHeadsetImgView.startAnimation(animation);
-        mNoHeadsetTitleTextView.startAnimation(animation);
-
-        animation = AnimationUtils.loadAnimation(mContext,
-                R.anim.noeaphone_translate_out);
-        animation.setAnimationListener(new NoHeadsetAlpaOutListener());
-        mNoEarphoneTextLayout.startAnimation(animation);
-    }
-
-    /**
-     * clear main layout animation
-     */
-    private void cancelMainAnimation() {
-        mNoEarPhoneTxt.clearAnimation();
-        mNoHeadsetImgView.clearAnimation();
-        mNoHeadsetTitleTextView.clearAnimation();
-        mNoEarphoneTextLayout.clearAnimation();
-    }
-
-    /**
-     * play change to no headset layout animation
-     */
-    private void playNoHeadsetAnimation() {
-        if (null == mService || mNoHeadsetLayout.isShown()) {
-            return;
-        }
-        Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.main_alpha_out);
-        mMainLayout.startAnimation(animation);
-        animation.setAnimationListener(new NoHeadsetAlpaInListener());
-        mBtnPlayContainer.startAnimation(animation);
-    }
-
-    /**
-     * clear no headset layout animation
-     */
-    private void cancelNoHeadsetAnimation() {
+    private void handleAntennaChange(boolean hasAntenna) {
+        // Cancel any in-flight animations that might be mid-fade
         mMainLayout.clearAnimation();
         mBtnPlayContainer.clearAnimation();
+        mNoHeadsetLayout.clearAnimation();
+
+        // Set correct layout state immediately
+        if (hasAntenna) {
+            changeToMainLayout();
+        } else {
+            changeToNoHeadsetLayout();
+        }
+
+        // Play animation purely for visual polish
+        if (mIsActivityForeground) {
+            if (hasAntenna) {
+                mMainLayout.startAnimation(
+                    AnimationUtils.loadAnimation(mContext, R.anim.main_alpha_in));
+                mBtnPlayContainer.startAnimation(
+                    AnimationUtils.loadAnimation(mContext, R.anim.floatbtn_alpha_in));
+            } else {
+                mNoHeadsetLayout.startAnimation(
+                    AnimationUtils.loadAnimation(mContext, R.anim.noeaphone_alpha_in));
+            }
+        }
     }
 
     /**
