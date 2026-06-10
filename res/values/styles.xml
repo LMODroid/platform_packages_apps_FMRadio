@@ -27,10 +27,8 @@
             ?colorSurface
         </item>
 
-        <!-- Optional: set for a light status bar with dark content. -->
-        <item name="android:windowLightStatusBar">
-            @bool/windowLightStatusBar
-        </item>
+    <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+    <item name="android:windowLightNavigationBar">?attr/isLightTheme</item>
     </style>
 
 </resources>

@@ -1173,7 +1173,6 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mNoHeadsetLayout.setVisibility(View.GONE);
         // change to main layout
         mMainLayout.setVisibility(View.VISIBLE);
-        getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurfaceContainer));
         mBtnPlayContainer.setVisibility(View.VISIBLE);
     }
 
@@ -1188,7 +1187,6 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
         mNoHeadsetTitleTextView.setVisibility(View.VISIBLE);
         mNoHeadsetImgViewWrap.setVisibility(View.VISIBLE);
         mNoHeadsetLayout.setVisibility(View.VISIBLE);
-        getWindow().setNavigationBarColor(MaterialColors.getColor(mMainLayout, com.google.android.material.R.attr.colorSurface));
         mNoHeadsetImgViewWrap.setElevation(mMiddleShadowSize);
     }
 
